@@ -75,17 +75,18 @@ pkg_fetch_archive () {
     fi
 
     if [[ ! -e "$archive" ]]; then
-        local url
+        local url geturl_output
 
         mkdir -p "$cache_dir"
 
-        if geturl "$src_url" "$archive"; then
+        if geturl_output=$(geturl "$src_url" "$archive" 2>&1); then
             url="$src_url"
-        elif [[ -n "${src_url_backup:-}" ]]; then
-            geturl "$src_url_backup" "$archive"
+        elif [[ -n "${src_url_backup:-}" ]] && \
+             geturl "$src_url_backup" "$archive" >/dev/null 2>&1; then
             url="$src_url_backup"
         else
-            exit 1
+            echo "$geturl_output" >&2
+            error "failed to download archive"
         fi
 
         if [[ "$VERIFY_FETCH_HASH" = 1 ]]; then
