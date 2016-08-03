@@ -10,6 +10,7 @@ import org.json.simple.JSONArray;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /** Base class for all reql queries.
@@ -65,6 +66,11 @@ public class ReqlAst {
         return conn.run(this, new OptArgs(), Optional.empty());
     }
 
+    public <T> CompletableFuture<T> runAsync(Connection conn) {
+        return conn.runAsync(this, new OptArgs(), Optional.empty());
+    }
+
+
     /**
      * Runs this query via connection {@code conn} with options {@code runOpts} and returns an atom result
      * or a sequence result as a cursor. The atom result either has a primitive type (e.g., {@code Integer})
@@ -78,6 +84,9 @@ public class ReqlAst {
     public <T> T run(Connection conn, OptArgs runOpts) {
         return conn.run(this, runOpts, Optional.empty());
     }
+    public <T> CompletableFuture<T> runAsync(Connection conn, OptArgs runOpts) {
+            return conn.runAsync(this, runOpts, Optional.empty());
+        }
 
     /**
      * Runs this query via connection {@code conn} with default options and returns an atom result
@@ -94,6 +103,10 @@ public class ReqlAst {
     public <T, P> T run(Connection conn, Class<P> pojoClass) {
         return conn.run(this, new OptArgs(), Optional.of(pojoClass));
     }
+    public <T, P> CompletableFuture<T> runAsync(Connection conn, Class<P> pojoClass) {
+        return conn.runAsync(this, new OptArgs(), Optional.of(pojoClass));
+    }
+
 
     /**
      * Runs this query via connection {@code conn} with options {@code runOpts} and returns an atom result
@@ -110,6 +123,9 @@ public class ReqlAst {
      */
     public <T, P> T run(Connection conn, OptArgs runOpts, Class<P> pojoClass) {
         return conn.run(this, runOpts, Optional.of(pojoClass));
+    }
+    public <T, P> CompletableFuture<T> runAsync(Connection conn, OptArgs runOpts, Class<P> pojoClass) {
+        return conn.runAsync(this, runOpts, Optional.of(pojoClass));
     }
 
     public void runNoReply(Connection conn){

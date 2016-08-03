@@ -9,7 +9,7 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-version = '2.3.3'
+version = '2.3.3-chatbox-SNAPSHOT'
 ext.isReleaseVersion = !version.endsWith("-SNAPSHOT")
 group = "com.rethinkdb"
 archivesBaseName = "rethinkdb-driver"
@@ -91,14 +91,10 @@ uploadArchives {
           MavenDeployment deployment -> signing.signPom(deployment)
       }
 
-      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: project.hasProperty('ossrhUsername') ? ossrhUsername : '',
-                       password: project.hasProperty('ossrhPassword') ? ossrhPassword : '')
+      repository(url: "$project.hasProperty('mavenWriteURL')") {
       }
 
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: project.hasProperty('ossrhUsername') ? ossrhUsername : '',
-                       password: project.hasProperty('ossrhPassword') ? ossrhPassword : '')
+      snapshotRepository(url: "$project.hasProperty('mavenWriteURL')") {
       }
 
       pom.project {

@@ -199,7 +199,7 @@ public class Connection implements Closeable {
      * @param deadline the timeout.
      * @return a completable future.
      */
-    private Future<Response> sendQuery(Query query, Optional<Long> deadline) {
+    private CompletableFuture<Response> sendQuery(Query query, Optional<Long> deadline) {
         // check if response pump is running
         if (!exec.isShutdown() && !exec.isTerminated()) {
             final CompletableFuture<Response> awaiter = new CompletableFuture<>();
@@ -271,6 +271,16 @@ public class Connection implements Closeable {
             throw new ReqlDriverError(e);
         }
 
+        return convertToResponse(query, pojoClass, res);
+    }
+
+    <T, P> CompletableFuture<T> runQueryAsync(Query query, Optional<Class<P>> pojoClass, Optional<Long> timeout) {
+        return sendQuery(query, timeout)
+                .thenApply(resp -> convertToResponse(query, pojoClass, resp));
+    }
+
+
+    private <T, P> T convertToResponse(Query query, Optional<Class<P>> pojoClass, Response res) {
         if (res.isAtom()) {
             try {
                 Converter.FormatOptions fmt = new Converter.FormatOptions(query.globalOptions);
@@ -330,6 +340,22 @@ public class Connection implements Closeable {
                             "Use `.runNoReply` instead of `.run`");
         }
         return runQuery(q, pojoClass, timeout);
+    }
+
+
+    public <T, P> CompletableFuture<T> runAsync(ReqlAst term, OptArgs globalOpts, Optional<Class<P>> pojoClass) {
+        return runAsync(term, globalOpts, pojoClass, Optional.empty());
+    }
+
+    public <T, P> CompletableFuture<T> runAsync(ReqlAst term, OptArgs globalOpts, Optional<Class<P>> pojoClass, Optional<Long> timeout) {
+        setDefaultDB(globalOpts);
+        Query q = Query.start(newToken(), term, globalOpts);
+        if (globalOpts.containsKey("noreply")) {
+            throw new ReqlDriverError(
+                    "Don't provide the noreply option as an optarg. " +
+                            "Use `.runNoReply` instead of `.run`");
+        }
+        return runQueryAsync(q, pojoClass, timeout);
     }
 
     public void runNoReply(ReqlAst term, OptArgs globalOpts) {
